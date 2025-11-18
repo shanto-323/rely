@@ -1,0 +1,108 @@
+services:
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=local
+      - POSTGRES_USER=local
+      - POSTGRES_PASSWORD=localdb
+    volumes:
+      - data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+        - net 
+
+  redis:
+    image: redis:8-alpine
+    container_name: redis
+    volumes:
+      - cache-data:/data
+    ports:
+      - 6379:6379
+    networks:
+      - net
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    ports:
+      - 3200:3200
+      - 4318:4318
+    volumes:
+      - tracer-data:/var/tempo
+      - ./config/tempo-config.yaml:/etc/tempo.yaml
+    command: -config.file=/etc/tempo.yaml
+    networks:
+      - net
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - 3100:3100
+    volumes:
+      - ./config/loki-config.yaml:/etc/loki/local-config.yaml
+    tmpfs:
+      - /tmp/loki  
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - net
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - logs:/var/lib/logs:ro
+      - ./config/promtail-config.yaml:/etc/promtail/config.yaml
+    command: -config.file=/etc/promtail/config.yaml
+    depends_on:
+      - loki
+    networks:
+      - net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=local
+      - GF_SECURITY_ADMIN_PASSWORD=local
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - net
+    depends_on:
+      - tempo
+
+  project:
+    build:
+      context: ..
+      dockerfile: ./scripts/Dockerfile
+    volumes:
+      - logs:/var/lib/logs
+    depends_on: 
+      - postgres
+      - redis
+      - tempo
+      - loki
+    env_file:
+      - ../.env
+    ports:
+      - 8080:8080
+    networks:
+      - net
+
+
+volumes:
+  logs:
+  loki:
+  data:
+  cache-data:
+  tracer-data:
+  grafana-data:
+
+networks:
+  net:
