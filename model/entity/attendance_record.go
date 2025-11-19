@@ -7,7 +7,7 @@ import (
 
 type AttendanceRecord struct {
 	SessionId uuid.UUID `db:"session_id" validate:"required,uuid"`
-	StudentID int       `db:"student_id" validate:"required,min=1"`
+	StudentID int     `db:"student_id" validate:"required,min=1"`
 }
 
 func (ar *AttendanceRecord) Validate() error {

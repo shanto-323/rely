@@ -21,3 +21,4 @@ type Student struct {
 func (s *Student) Validate() error {
 	return validator.New().Struct(s)
 }
+

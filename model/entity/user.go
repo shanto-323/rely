@@ -9,11 +9,11 @@ import (
 )
 
 type User struct {
-	ID        uuid.UUID      `db:"id" validate:"required,uuid"`
-	UserId   int            `db:"user_id" validate:"required,min=2"` // Foreign key
+	ID       uuid.UUID      `db:"id" validate:"required,uuid"`
+	UserId   uuid.UUID      `db:"user_id" validate:"required,uuid"` // = ID, Foreign key
 	UserType model.UserType `db:"user_type" validate:"required,oneof=SUP MOD TEACHER STUDENT"`
-	Token     string         `db:"token" validate:"required,min=10"`
-	Blocked   bool           `db:"blocked"`
+	Token    string         `db:"token" validate:"required,min=10"`
+	Blocked  bool           `db:"blocked"`
 }
 
 func (u *User) Validate() error {
