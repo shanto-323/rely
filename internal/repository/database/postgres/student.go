@@ -44,7 +44,9 @@ func (d *DB) CreateStudent(ctx context.Context, payload *entity.Student, userPay
 	`
 
 	// Starts Transaction
-	tx, err := d.pool.BeginTx(ctx, pgx.TxOptions{BeginQuery: ""})
+	tx, err := d.pool.BeginTx(ctx, pgx.TxOptions{
+		AccessMode: pgx.ReadWrite,
+	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -121,15 +123,11 @@ func (d *DB) DeleteStudentByID(ctx context.Context, id uuid.UUID) error {
 			id = @id
     `
 
-	result, err := d.pool.Exec(ctx, query, pgx.NamedArgs{
+	_, err := d.pool.Exec(ctx, query, pgx.NamedArgs{
 		"id": id,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to delete student: %w", err)
-	}
-
-	if result.RowsAffected() == 0 {
-		return fmt.Errorf("student not found")
 	}
 
 	return nil

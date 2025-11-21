@@ -53,12 +53,13 @@ func New(config *config.Config, logger *zerolog.Logger, tracer trace.Tracer) (da
 	hostPort := net.JoinHostPort(config.Database.Host, strconv.Itoa(config.Database.Port))
 
 	dsn := fmt.Sprintf(
-		"postgres://%s:%s@%s/%s?sslmode=%s",
+		"postgres://%s:%s@%s/%s?sslmode=%s&channel_binding=%s",
 		config.Database.User,
 		config.Database.Password,
 		hostPort,
 		config.Database.Name,
 		config.Database.SSLMode,
+		config.Database.ChannelBinding,
 	)
 
 	pgxPoolConfig, err := pgxpool.ParseConfig(dsn)

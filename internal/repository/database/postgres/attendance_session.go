@@ -16,7 +16,7 @@ func (d *DB) CreateAttendanceSession(ctx context.Context, session *entity.Attend
 	query := `
 	INSERT INTO attendance_sessions (
 		teacher_id,
-		subject,
+		subject_code,
 		department,
 		shift,
 		semester,
@@ -25,7 +25,7 @@ func (d *DB) CreateAttendanceSession(ctx context.Context, session *entity.Attend
 	)
 	VALUES (
 		@teacher_id,
-		@subject,
+		@subject_code,
 		@department,
 		@shift,
 		@semester,
@@ -51,13 +51,13 @@ func (d *DB) CreateAttendanceSession(ctx context.Context, session *entity.Attend
 	}()
 
 	rows, err := tx.Query(ctx, query, pgx.NamedArgs{
-		"teacher_id": session.TeacherID,
-		"subject":    session.SubjectID,
-		"department": session.Department,
-		"shift":      session.Shift,
-		"semester":   session.Semester,
-		"section":    session.Section,
-		"valid":      session.Valid,
+		"teacher_id":   session.TeacherID,
+		"subject_code": session.SubjectCode,
+		"department":   session.Department,
+		"shift":        session.Shift,
+		"semester":     session.Semester,
+		"section":      session.Section,
+		"valid":        session.Valid,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert session: %w", err)

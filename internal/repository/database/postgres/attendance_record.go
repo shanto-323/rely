@@ -26,3 +26,5 @@ func (d *DB) CreateAttendanceRecords(ctx context.Context, tx pgx.Tx, session_id 
 	return nil
 }
 
+
+
