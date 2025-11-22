@@ -10,11 +10,10 @@ import (
 
 type Token struct {
 	model.Base
-	Code      string    `db:"token" validate:"required"`
-	IssuedBy  uuid.UUID `db:"issued_by" validate:"required,uuid"` // UserId
-	CaimedBy  uuid.UUID `db:"used_by" validate:"required,uuid"`   // UserId
-	IsClaimed bool      `db:"claimed"`
-	Valid     bool      `db:"valid"`
+	Token     string    `db:"token" validate:"required"`
+	IssuedBy uuid.UUID `db:"issued_by" validate:"required,uuid"` // UserId
+	ClaimedBy uuid.UUID `db:"claimed_by" validate:"required,uuid"`   // UserId
+	Valid    bool      `db:"valid"`
 }
 
 func (t *Token) Validate() error {
@@ -27,4 +26,3 @@ func (t *Token) IsValid() error {
 	}
 	return nil
 }
-

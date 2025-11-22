@@ -115,6 +115,31 @@ func (d *DB) GetStudentByID(ctx context.Context, id uuid.UUID) (*entity.Student,
 	return &student, nil
 }
 
+func (d *DB) GetStudentByStudentID(ctx context.Context, studentId int) (*entity.Student, error) {
+	query := `
+		SELECT
+			*
+		FROM
+			students
+		WHERE
+			student_id = @student_id
+	`
+
+	rows, err := d.pool.Query(ctx, query, pgx.NamedArgs{
+		"student_id": studentId,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute student select query: %w", err)
+	}
+
+	student, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[entity.Student])
+	if err != nil {
+		return nil, fmt.Errorf("student not found: %w", err)
+	}
+
+	return &student, nil
+}
+
 func (d *DB) DeleteStudentByID(ctx context.Context, id uuid.UUID) error {
 	query := `
         DELETE FROM 
@@ -132,4 +157,3 @@ func (d *DB) DeleteStudentByID(ctx context.Context, id uuid.UUID) error {
 
 	return nil
 }
-

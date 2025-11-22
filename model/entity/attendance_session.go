@@ -9,13 +9,13 @@ import (
 
 type AttendanceSession struct {
 	model.Base
-	TeacherID  int              `db:"teacher_id" validate:"required"`
-	SubjectID  int              `db:"subject" validate:"required"`
-	Department model.Department `db:"department" validate:"required"`
-	Shift      model.Shift      `db:"shift" validate:"required,oneof=1 2"`
-	Semester   model.Semester   `db:"semester" validate:"required,min=1,max=8"`
-	Section    model.Section    `db:"section" validate:"required,oneof=A B C"`
-	Valid      bool             `db:"valid"`
+	TeacherID   int              `db:"teacher_id" validate:"required"`
+	SubjectCode int              `db:"subject_code" validate:"required"`
+	Department  model.Department `db:"department" validate:"required"`
+	Shift       model.Shift      `db:"shift" validate:"required,oneof=1 2"`
+	Semester    model.Semester   `db:"semester" validate:"required,min=1,max=8"`
+	Section     model.Section    `db:"section" validate:"required,oneof=A B C"`
+	Valid       bool             `db:"valid"`
 }
 
 func (as *AttendanceSession) Validate() error {

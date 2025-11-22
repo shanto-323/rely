@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/shanto-323/rely/internal/server"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -28,12 +29,15 @@ func (ce *ContextEnhancer) EnhanceContext() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			requestID := GetRequestID(c)
+			span := trace.SpanFromContext(c.Request().Context())
+			tracerId := span.SpanContext().TraceID().String()
 
 			contextLogger := ce.s.Logger.With().
 				Str("request_id", requestID).
 				Str("method", c.Request().Method).
 				Str("path", c.Path()).
 				Str("ip", c.RealIP()).
+				Str("tracer_id", tracerId).
 				Logger()
 
 			if userID := ce.extractUserID(c); userID != "" {

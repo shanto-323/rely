@@ -7,12 +7,17 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/shanto-323/rely/model"
 	"github.com/shanto-323/rely/model/dto"
 )
 
-func (d *DB) StudentAttendanceOverview(ctx context.Context, studentId int) (*dto.StudentAttendanceOverview, error) {
+// Prefer using `id` because primary keys are immutable, unique, and indexed.
+// StudentID is a mutable business field, and using it in queries is slower and unsafe.
+
+
+func (d *DB) StudentAttendanceOverview(ctx context.Context, id uuid.UUID) (*dto.StudentAttendanceOverview, error) {
 	query := `
         WITH student_info AS (
             SELECT
@@ -23,7 +28,7 @@ func (d *DB) StudentAttendanceOverview(ctx context.Context, studentId int) (*dto
                 semester,
                 section
             FROM students
-            WHERE student_id = @student_id
+            WHERE id = @id
         ),
 
         class_counts AS (
@@ -123,11 +128,11 @@ func (d *DB) StudentAttendanceOverview(ctx context.Context, studentId int) (*dto
 
 	var jsonBlob json.RawMessage
 
-	// This is the correct way for a query that returns ONE JSON blob
-	err = tx.QueryRow(ctx, query, pgx.NamedArgs{"student_id": studentId}).Scan(&jsonBlob)
+	// This returns ONE JSON blob
+	err = tx.QueryRow(ctx, query, pgx.NamedArgs{"id": id}).Scan(&jsonBlob)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("student with id %d not found", studentId)
+			return nil, fmt.Errorf("student with id %d not found", id)
 		}
 		return nil, fmt.Errorf("failed to query attendance overview: %w", err)
 	}
@@ -266,7 +271,7 @@ func (d *DB) StudentsAttendanceOverview(ctx context.Context, paginate *dto.Pagin
 
 	var jsonBlob json.RawMessage
 
-	// This is the correct way for a query that returns ONE JSON blob
+	// This returns ONE JSON blob
 	err = tx.QueryRow(ctx, query, args).Scan(&jsonBlob)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

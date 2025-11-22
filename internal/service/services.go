@@ -5,9 +5,11 @@ import (
 )
 
 type Services struct {
+	OverviewService *OverviewService
 }
 
 func New(s *server.Server) *Services {
 	return &Services{
+		OverviewService: NewOverviewService(s.Repository.DatabaseDriver),
 	}
 }

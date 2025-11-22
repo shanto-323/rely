@@ -26,7 +26,10 @@ func New(config *config.Config, logger *zerolog.Logger, tracer trace.Tracer) (Pr
 		return nil, fmt.Errorf("config and logger must not be nil")
 	}
 
-	opt, _ := redis.ParseURL(config.Redis.Address)
+	opt, err := redis.ParseURL(config.Redis.Address)
+	if err != nil {
+		return nil, fmt.Errorf("url parse error: %w",err)
+	}
 
 	redisClient := redis.NewClient(opt)
 

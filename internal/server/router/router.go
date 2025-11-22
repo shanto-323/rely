@@ -17,11 +17,11 @@ func NewRouter(s *server.Server, h *handler.Handlers) *echo.Echo {
 
 	router.Use(
 		middleware.RequestID(),
-		middlewares.EnhanceContext(),
 		middlewares.EnhanceTracing(),
+		middlewares.EnhanceContext(),
 	)
 
-	registerSystemRouter(router, h.HealthHandler)
+	registerSystemRouter(router, h.Health)
 
 	r := router.Group(ApiVersion)
 	v1.RegisterV1Routes(r, h, middlewares)

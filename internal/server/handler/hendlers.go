@@ -6,11 +6,13 @@ import (
 )
 
 type Handlers struct {
-	HealthHandler  *HealthHandler
+	Health   *HealthHandler
+	Overview *OverviewHandler
 }
 
-func New(s *server.Server, sr *service.Services) *Handlers {
+func New(s *server.Server, services *service.Services) *Handlers {
 	return &Handlers{
-		HealthHandler:  NewHealthHandler(s),
+		Health:   NewHealthHandler(s),
+		Overview: NewOverviewHandler(services.OverviewService),
 	}
 }

@@ -6,12 +6,12 @@ import (
 	"github.com/shanto-323/rely/model"
 )
 
-type Moderator struct {
+type Admin struct {
 	model.Base
 	IssuedBy uuid.UUID `db:"issued_by" validate:"required,uuid"` // UserId
 	CaimedBy uuid.UUID `db:"used_by" validate:"required,uuid"`   // UserId
 }
 
-func (m *Moderator) Validate() error {
-	return validator.New().Struct(m)
+func (a *Admin) Validate() error {
+	return validator.New().Struct(a)
 }

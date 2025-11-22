@@ -2,10 +2,13 @@
 .vscode
 *.pem
 vendor/
+mock/
+output.txt
 
 # Go workspace file
 go.work
 go.work.sum
+*_test.go
 
 # env file
 .env

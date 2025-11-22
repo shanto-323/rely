@@ -7,5 +7,10 @@ import (
 )
 
 func RegisterV1Routes(r *echo.Group, h *handler.Handlers, m *middleware.Middlewares) {
+	studentRoute := r.Group("/overview")
+	{
+		studentRoute.GET("", h.Overview.GetStudentsOverview)
+		studentRoute.GET("/:student_id", h.Overview.GetStudentOverview)
+	}
 
 }

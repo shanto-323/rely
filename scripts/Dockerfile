@@ -1,12 +1,12 @@
 FROM golang:1.25.4-alpine3.22 AS builder
-WORKDIR /project
+WORKDIR /rely
 
 COPY . .
 
 RUN go build -o /cmd/bin/app -trimpath -mod=vendor \
     -gcflags "-trimpath $PWD" -asmflags "-trimpath $PWD" \
     -ldflags "-s -w -X main.version=$VERSION -X main.commitID=$COMMIT" \
-    ./cmd
+    ./cmd/rely
 
 FROM alpine:3.22
 WORKDIR /usr/bin
