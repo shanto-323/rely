@@ -17,8 +17,22 @@ func NewGlobal(s *server.Server) *Global {
 }
 
 func (g *Global) CROS() echo.MiddlewareFunc {
-	return middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: g.s.Config.Server.CORSAllowedOrigins,
-	})
+    return middleware.CORSWithConfig(middleware.CORSConfig{
+        AllowOrigins: []string{"*"},
+        AllowMethods: []string{
+            echo.GET,
+            echo.POST,
+            echo.PUT,
+            echo.DELETE,
+            echo.OPTIONS,
+        },
+        AllowHeaders: []string{
+            echo.HeaderOrigin,
+            echo.HeaderContentType,
+            echo.HeaderAccept,
+            echo.HeaderAuthorization,
+        },
+        AllowCredentials: true,
+    })
 }
 

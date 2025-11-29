@@ -16,6 +16,7 @@ func NewRouter(s *server.Server, h *handler.Handlers) *echo.Echo {
 	router := echo.New()
 
 	router.Use(
+		middlewares.CROS(),
 		middleware.RequestID(),
 		middlewares.EnhanceTracing(),
 		middlewares.EnhanceContext(),

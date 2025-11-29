@@ -19,95 +19,115 @@ import (
 
 func (d *DB) StudentAttendanceOverview(ctx context.Context, id uuid.UUID) (*dto.StudentAttendanceOverview, error) {
 	query := `
-        WITH student_info AS (
-            SELECT
-                id,
-                fullname,
-                department,
-                shift,
-                semester,
-                section
-            FROM students
-            WHERE id = @id
-        ),
-
-        class_counts AS (
-            SELECT 
-                COUNT(*) AS total_classes,
-                SUM(CASE WHEN ar.student_id IS NOT NULL THEN 1 ELSE 0 END) AS present
-            FROM attendance_sessions s
-            LEFT JOIN attendance_records ar 
-                ON ar.session_id = s.id 
-                AND ar.student_id = @student_id
-            CROSS JOIN student_info si
-            WHERE 
-                s.department = si.department
-                AND s.shift = si.shift
-                AND s.semester = si.semester
-                AND s.section = si.section
-        ),
-
-        limited_sessions AS (
-            SELECT 
-                s.id,
-                s.teacher_id,
-                t.fullname AS teacher_name,
-                t.email AS teacher_email,
-                t.phone AS teacher_phone,
-                s.subject_code,
-                s.created_at,
-                ar.student_id IS NOT NULL AS present
-            FROM attendance_sessions s
-            LEFT JOIN attendance_records ar 
-                ON ar.session_id = s.id
-                AND ar.student_id = @student_id
-            JOIN teachers t ON t.id = s.teacher_id
-            CROSS JOIN student_info si
-            WHERE 
-                s.department = si.department
-                AND s.shift = si.shift
-                AND s.semester = si.semester
-                AND s.section = si.section
-            ORDER BY s.created_at DESC
-            LIMIT 10
-        ),
-
-        last_sessions AS (
-            SELECT json_agg(
-                json_build_object(
-                    'session_id', id,
-                    'teacher', json_build_object(
-                        'id', teacher_id,
-                        'fullname', teacher_name,
-                        'email', teacher_email,
-                        'phone', teacher_phone
-                    ),
-                    'subject_code', subject_code,
-                    'created_at', created_at,
-                    'present', present
-                )
-                ORDER BY created_at DESC
-            ) AS sessions
-            FROM limited_sessions
-        )
-
-        SELECT json_build_object(
-            'info', json_build_object(
-                'id', si.id,
-                'name', si.fullname,
-                'department', si.department,
-                'shift', si.shift,
-                'semester', si.semester,
-                'section', si.section,
-                'total_classes', cc.total_classes,
-                'present', cc.present,
-                'absent', (cc.total_classes - cc.present)
-            ),
-            'sessions', ls.sessions
-        )
-        FROM student_info si
-        JOIN class_counts cc ON true
-        JOIN last_sessions ls ON true
+   WITH
+	student_info AS (
+		SELECT
+			id,
+			student_id,
+			fullname,
+			department,
+			shift,
+			semester,
+			section
+		FROM
+			students
+		WHERE
+			student_id = @id
+	),
+	class_counts AS (
+		SELECT
+			COUNT(*) AS total_classes,
+			COUNT(ar.student_id) AS present
+		FROM
+			attendance_sessions s
+			CROSS JOIN student_info si
+			LEFT JOIN attendance_records ar ON ar.session_id = s.id
+			AND ar.student_id = si.student_id
+		WHERE
+			s.department = si.department
+			AND s.shift = si.shift
+			AND s.semester = si.semester
+			AND s.section = si.section
+	),
+	limited_sessions AS (
+		SELECT
+			s.id,
+			s.teacher_id,
+			t.fullname AS teacher_name,
+			t.email AS teacher_email,
+			t.phone AS teacher_phone,
+			s.subject_code,
+			s.created_at,
+			ar.student_id IS NOT NULL AS present
+		FROM
+			attendance_sessions s
+			CROSS JOIN student_info si
+			LEFT JOIN attendance_records ar ON ar.session_id = s.id
+			AND ar.student_id = si.student_id -- ← CORRECT: student_id (int)
+			JOIN teachers t ON t.id = s.teacher_id
+		WHERE
+			s.department = si.department
+			AND s.shift = si.shift
+			AND s.semester = si.semester
+			AND s.section = si.section
+		ORDER BY
+			s.created_at DESC
+		LIMIT
+			10
+	),
+	last_sessions AS (
+		SELECT
+			json_agg(
+				json_build_object(
+					'session_id',
+					id,
+					'teacher',
+					json_build_object('id', teacher_id, 'fullname', teacher_name, 'email', teacher_email, 'phone', teacher_phone),
+					'subject_code',
+					subject_code,
+					'created_at',
+					created_at,
+					'present',
+					present
+				)
+				ORDER BY
+					created_at DESC
+			) AS sessions
+		FROM
+			limited_sessions
+	)
+SELECT
+	json_build_object(
+		'info',
+		json_build_object(
+			'id',
+			si.id,
+			'student_id',
+			si.student_id, 
+			'name',
+			si.fullname,
+			'department',
+			si.department,
+			'shift',
+			si.shift,
+			'semester',
+			si.semester,
+			'section',
+			si.section,
+			'total_classes',
+			cc.total_classes,
+			'present',
+			cc.present,
+			'absent',
+			(cc.total_classes - cc.present)
+		),
+		'sessions',
+		COALESCE(ls.sessions, '[]'::json)
+	)
+FROM
+	student_info si
+	CROSS JOIN class_counts cc
+	CROSS JOIN last_sessions ls;
     `
 
 	tx, err := d.pool.BeginTx(ctx, pgx.TxOptions{
