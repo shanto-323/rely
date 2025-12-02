@@ -6,6 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
+
+
 type StudentAttendanceOverview struct {
 	Info     Info      `json:"info"`
 	Sessions []Session `json:"sessions"`

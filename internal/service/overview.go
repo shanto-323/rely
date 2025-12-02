@@ -32,9 +32,20 @@ func (o *OverviewService) StudentAttendanceOverview(c echo.Context, studentId in
 	return o.db.StudentAttendanceOverview(ctx, student.ID)
 }
 
-func (o *OverviewService) StudentsAttendanceOverview(c echo.Context, filter *dto.PaginationDto) (*model.PaginatedResponse[dto.StudentsOverview], error) {
+func (o *OverviewService) StudentsAttendanceOverview(c echo.Context, query *dto.OverviewStudentsQueryRequest) (*model.PaginatedResponse[dto.StudentsOverview], error) {
+	page := 1
+	limit := 10
+	if query.Page != nil {
+		page = *query.Page
+	}
+	if query.Limit != nil {
+		limit = *query.Limit
+	}
+
+	filter := query.GetFilter()
+
 	ctx, cancel := context.WithTimeout(c.Request().Context(), 10*time.Second)
 	defer cancel()
 
-	return o.db.StudentsAttendanceOverview(ctx, filter)
+	return o.db.StudentsAttendanceOverview(ctx, page, limit, filter)
 }

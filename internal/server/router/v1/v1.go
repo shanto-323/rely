@@ -9,8 +9,9 @@ import (
 func RegisterV1Routes(r *echo.Group, h *handler.Handlers, m *middleware.Middlewares) {
 	studentRoute := r.Group("/overview")
 	{
-		studentRoute.POST("", h.Overview.GetStudentsOverview)
+		studentRoute.GET("", h.Overview.GetStudentsOverview)
 		studentRoute.GET("/:student_id", h.Overview.GetStudentOverview)
+		studentRoute.GET("/students",h.Student.GetStudents )
 	}
 
 }

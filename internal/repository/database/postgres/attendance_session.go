@@ -20,8 +20,7 @@ func (d *DB) CreateAttendanceSession(ctx context.Context, session *entity.Attend
 		department,
 		shift,
 		semester,
-		section,
-		valid,
+		section
 	)
 	VALUES (
 		@teacher_id,
@@ -29,8 +28,7 @@ func (d *DB) CreateAttendanceSession(ctx context.Context, session *entity.Attend
 		@department,
 		@shift,
 		@semester,
-		@section,
-		@valid,
+		@section
 	)
 	RETURNING *
 	`
@@ -43,7 +41,7 @@ func (d *DB) CreateAttendanceSession(ctx context.Context, session *entity.Attend
 
 	defer func() {
 		// Ends Transaction
-		if err == nil {
+		if err != nil {
 			_ = tx.Rollback(ctx)
 			return
 		}
@@ -57,7 +55,6 @@ func (d *DB) CreateAttendanceSession(ctx context.Context, session *entity.Attend
 		"shift":        session.Shift,
 		"semester":     session.Semester,
 		"section":      session.Section,
-		"valid":        session.Valid,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert session: %w", err)

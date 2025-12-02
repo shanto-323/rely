@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/shanto-323/rely/internal/service"
@@ -21,24 +20,22 @@ func NewOverviewHandler(service *service.OverviewService) *OverviewHandler {
 }
 
 func (h *OverviewHandler) GetStudentOverview(c echo.Context) error {
-	return HandleIdBasedPath(
-		func(c echo.Context) (any, error) {
-			studentID := c.Param("student_id")
-
-			id, err := strconv.Atoi(studentID)
-			if err != nil {
-				return nil, err
-			}
-			return h.service.StudentAttendanceOverview(c, id)
-		}, JSONResponseHandler{status: http.StatusOK})(c)
+	return Handle(
+		func(c echo.Context, studentId *dto.StudentIDRequest) (*dto.StudentAttendanceOverview, error) {
+			return h.service.StudentAttendanceOverview(c, studentId.StudentID)
+		},
+		http.StatusOK,
+		&dto.StudentIDRequest{},
+	)(c)
 }
 
 func (h *OverviewHandler) GetStudentsOverview(c echo.Context) error {
 	return Handle(
-		func(c echo.Context, req *dto.PaginationDto) (*model.PaginatedResponse[dto.StudentsOverview], error) {
+		// need to re-build
+		func(c echo.Context, req *dto.OverviewStudentsQueryRequest) (*model.PaginatedResponse[dto.StudentsOverview], error) {
 			return h.service.StudentsAttendanceOverview(c, req)
 		},
 		http.StatusOK,
-		&dto.PaginationDto{},
+		&dto.OverviewStudentsQueryRequest{},
 	)(c)
 }

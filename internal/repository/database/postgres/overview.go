@@ -16,7 +16,6 @@ import (
 // Prefer using `id` because primary keys are immutable, unique, and indexed.
 // StudentID is a mutable business field, and using it in queries is slower and unsafe.
 
-
 func (d *DB) StudentAttendanceOverview(ctx context.Context, id uuid.UUID) (*dto.StudentAttendanceOverview, error) {
 	query := `
    WITH
@@ -32,7 +31,7 @@ func (d *DB) StudentAttendanceOverview(ctx context.Context, id uuid.UUID) (*dto.
 		FROM
 			students
 		WHERE
-			student_id = @id
+			id = @id
 	),
 	class_counts AS (
 		SELECT
@@ -165,17 +164,17 @@ FROM
 	return &overview, nil
 }
 
-func (d *DB) StudentsAttendanceOverview(ctx context.Context, paginate *dto.PaginationDto) (*model.PaginatedResponse[dto.StudentsOverview], error) {
+func (d *DB) StudentsAttendanceOverview(ctx context.Context, page, limit int, filter map[string]string) (*model.PaginatedResponse[dto.StudentsOverview], error) {
 
 	filterClauses := []string{}
 	joinFilterClauses := []string{}
 
 	args := pgx.NamedArgs{
-		"limit": paginate.Limit,
-		"page":  paginate.Page,
+		"page":  page,
+		"limit": limit,
 	}
 
-	for key, value := range paginate.Filter {
+	for key, value := range filter {
 		filterClauses = append(filterClauses, fmt.Sprintf("%s = @%s", key, key))
 		joinFilterClauses = append(joinFilterClauses, fmt.Sprintf("s.%s = @%s", key, key))
 		args[key] = value
@@ -295,7 +294,7 @@ func (d *DB) StudentsAttendanceOverview(ctx context.Context, paginate *dto.Pagin
 	err = tx.QueryRow(ctx, query, args).Scan(&jsonBlob)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("no data found: %w",err)
+			return nil, fmt.Errorf("no data found: %w", err)
 		}
 		return nil, fmt.Errorf("failed to query students overview: %w", err)
 	}

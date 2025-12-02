@@ -1,40 +1,61 @@
 package dto
 
-import "github.com/shanto-323/rely/model"
+import (
+	"github.com/go-playground/validator"
+	"github.com/google/uuid"
+)
 
-// DTO for receiving data from client
-type StudentRequestDTO struct {
+type StudentsQueryRequest struct {
+	AcademicContext
+	Pagination
+}
+
+func (r *StudentsQueryRequest) Validate() error {
+	if r.Page == nil {
+		defaultPage := 1
+		r.Page = &defaultPage
+	}
+
+	if r.Limit == nil {
+		defaultLimit := 10
+		r.Limit = &defaultLimit
+	}
+
+	validator := validator.New()
+	return validator.Struct(r)
+}
+
+type StudentIDRequest struct {
+	StudentID int `param:"student_id" validate:"required"`
+}
+
+func (r *StudentIDRequest) Validate() error {
+	validator := validator.New()
+	return validator.Struct(r)
+}
+
+type CreateStudentRequest struct {
 	StudentID    int    `json:"student_id" validate:"required,min=6"`
 	FullName     string `json:"fullname" validate:"required,min=3,max=100"`
 	Email        string `json:"email" validate:"required,email"`
 	Phone        string `json:"phone" validate:"required,e164"`
 	Registration int    `json:"registration" validate:"required,min=11"`
-	Department   string `json:"department" validate:"required"` // string representation
-	Shift        string `json:"shift" validate:"required"`      // string representation
-	Semester     int    `json:"semester" validate:"required,min=1,max=8"`
-	Section      string `json:"section" validate:"required"` // string representation
+	Department   string `json:"department" validate:"required"`
+	Shift        string `json:"shift" validate:"required"`
+	Semester     string `json:"semester" validate:"required,min=1,max=8"`
+	Section      string `json:"section" validate:"required"`
 }
 
-// DTO for sending data to client
-type StudentResponseDTO struct {
-	model.Base
-	StudentID    int    `json:"student_id"`
-	FullName     string `json:"fullname"`
-	Email        string `json:"email"`
-	Phone        string `json:"phone"`
-	Registration int    `json:"registration"`
-	Department   string `json:"department"`
-	Shift        string `json:"shift"`
-	Semester     int    `json:"semester"`
-	Section      string `json:"section"`
+func (r *CreateStudentRequest) Validate() error {
+	validator := validator.New()
+	return validator.Struct(r)
 }
 
-// Public DTO for Student (for non-admin / client-facing endpoints)
-type StudentPublicDTO struct {
-	StudentID  int    `json:"student_id"`
-	FullName   string `json:"fullname"`
-	Department string `json:"department"`
-	Semester   int    `json:"semester"`
-	Section    string `json:"section"`
+type CreateStudentResponse struct {
+	Id         uuid.UUID `json:"id"`
+	StudentID  int       `json:"student_id"`
+	FullName   string    `json:"fullname"`
+	Department string    `json:"department"`
+	Semester   string    `json:"semester"`
+	Section    string    `json:"section"`
 }
-
